@@ -24,10 +24,10 @@ jobs:
       with:
         node-version: 20
 
-    - name: Create package.json and install Capacitor
+    - name: Install Capacitor
       run: |
         npm init -y
-        npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+        npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
 
     - name: Initialize Capacitor
       run: |
@@ -37,29 +37,27 @@ jobs:
       run: |
         npx cap add android
 
-    - name: Add Camera Permission to AndroidManifest
+    - name: Add Camera Permission
       run: |
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         sed -i 's|</manifest>|    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />\n</manifest>|' "$MANIFEST"
 
-    - name: Upgrade Gradle to 8.11.1
+    - name: Debug - Show generated Gradle files
       run: |
-        PROPS="android/gradle/wrapper/gradle-wrapper.properties"
-        sed -i 's|gradle-.*-all.zip|gradle-8.11.1-all.zip|' "$PROPS"
-        cat "$PROPS"
-
-    - name: Upgrade Android Gradle Plugin to 8.7.3
-      run: |
-        BUILD_GRADLE="android/build.gradle"
-        sed -i "s|classpath 'com.android.tools.build:gradle:.*'|classpath 'com.android.tools.build:gradle:8.7.3'|" "$BUILD_GRADLE"
-        cat "$BUILD_GRADLE"
-
-    - name: Set compileSdk and targetSdk to 34
-      run: |
-        APP_GRADLE="android/app/build.gradle"
-        sed -i 's|compileSdkVersion.*|compileSdk 34|' "$APP_GRADLE"
-        sed -i 's|targetSdkVersion.*|targetSdk 34|' "$APP_GRADLE"
-        cat "$APP_GRADLE"
+        echo "=== android/build.gradle ==="
+        cat android/build.gradle
+        echo ""
+        echo "=== android/app/build.gradle ==="
+        cat android/app/build.gradle
+        echo ""
+        echo "=== gradle-wrapper.properties ==="
+        cat android/gradle/wrapper/gradle-wrapper.properties
+        echo ""
+        echo "=== Java version ==="
+        java -version
+        echo ""
+        echo "=== Node version ==="
+        node -v
 
     - name: Sync Capacitor
       run: |
@@ -69,7 +67,7 @@ jobs:
       working-directory: android
       run: |
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace
+        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee ../gradle_output.log
 
     - name: Upload APK Artifact
       if: success()
@@ -84,6 +82,7 @@ jobs:
       with:
         name: build-logs
         path: |
+          gradle_output.log
           android/build.gradle
           android/app/build.gradle
           android/gradle/wrapper/gradle-wrapper.properties

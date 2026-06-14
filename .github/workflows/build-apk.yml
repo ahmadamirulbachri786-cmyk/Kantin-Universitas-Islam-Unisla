@@ -42,23 +42,6 @@ jobs:
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         sed -i 's|</manifest>|    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />\n</manifest>|' "$MANIFEST"
 
-    - name: Debug - Show generated Gradle files
-      run: |
-        echo "=== android/build.gradle ==="
-        cat android/build.gradle
-        echo ""
-        echo "=== android/app/build.gradle ==="
-        cat android/app/build.gradle
-        echo ""
-        echo "=== gradle-wrapper.properties ==="
-        cat android/gradle/wrapper/gradle-wrapper.properties
-        echo ""
-        echo "=== Java version ==="
-        java -version
-        echo ""
-        echo "=== Node version ==="
-        node -v
-
     - name: Sync Capacitor
       run: |
         npx cap sync android
@@ -67,29 +50,27 @@ jobs:
       working-directory: android
       run: |
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee ../gradle_output.log
+        ./gradlew assembleDebug --no-daemon --stacktrace
 
-    - name: Find APK files
-      if: success()
+    - name: List all build outputs
+      if: always()
       run: |
-        echo "=== Searching for APK files ==="
-        find . -name "*.apk" -type f 2>/dev/null
+        echo "=== All APK files ==="
+        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found anywhere"
         echo ""
-        echo "=== Searching in android/app/build ==="
-        find android/app/build -type f -name "*.apk" 2>/dev/null || echo "No APK found in android/app/build"
+        echo "=== All AAB files ==="
+        find . -name "*.aab" -type f 2>/dev/null || echo "No AAB files found"
         echo ""
-        echo "=== Full android build outputs ==="
-        ls -la android/app/build/outputs/ 2>/dev/null || echo "No outputs directory"
-        ls -la android/app/build/outputs/apk/ 2>/dev/null || echo "No apk directory"
-        ls -laR android/app/build/outputs/apk/ 2>/dev/null || echo "No apk subdirectories"
+        echo "=== Build outputs directory ==="
+        ls -laR android/app/build/outputs/ 2>/dev/null || echo "No outputs directory found"
 
     - name: Upload APK Artifact
-      if: success()
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: kantin-unisla-apk
         path: |
-          android/app/build/outputs/apk/**/*.apk
+          android/app/build/outputs/
         if-no-files-found: warn
 
     - name: Upload Logs on Failure

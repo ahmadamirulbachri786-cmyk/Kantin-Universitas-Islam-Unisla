@@ -1,0 +1,57 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Create package.json and install Capacitor
+      run: |
+        npm init -y
+        npm install @capacitor/core @capacitor/cli @capacitor/android
+        # Inisialisasi capacitor dengan direktori web mengarah ke folder sistem_kantin
+        npx cap init "Kantin Unisla" "com.unisla.kantin" --web-dir=sistem_kantin
+        npx cap add android
+
+    - name: Add Camera Permission to AndroidManifest
+      run: |
+        # Menambahkan izin akses kamera ke file AndroidManifest.xml secara otomatis
+        sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" />\n    <uses-feature android:name="android.hardware.camera.autofocus" />' android/app/src/main/AndroidManifest.xml
+
+    - name: Sync Capacitor
+      run: |
+        npx cap sync
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: Build APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: kantin-unisla-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk

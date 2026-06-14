@@ -24,10 +24,10 @@ jobs:
       with:
         node-version: 22
 
-    - name: Install Capacitor
+    - name: Install Capacitor v6
       run: |
         npm init -y
-        npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
+        npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
 
     - name: Initialize Capacitor
       run: |
@@ -42,6 +42,20 @@ jobs:
         MANIFEST="android/app/src/main/AndroidManifest.xml"
         sed -i 's|</manifest>|    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />\n</manifest>|' "$MANIFEST"
 
+    - name: Fix Gradle version for JDK 17 compatibility
+      run: |
+        # Upgrade Gradle wrapper to 8.4 (compatible with AGP 8.2.1 from Cap 6)
+        PROPS="android/gradle/wrapper/gradle-wrapper.properties"
+        sed -i 's|gradle-.*-all.zip|gradle-8.4-all.zip|' "$PROPS"
+        echo "=== gradle-wrapper.properties ==="
+        cat "$PROPS"
+        echo ""
+        echo "=== android/build.gradle ==="
+        cat android/build.gradle
+        echo ""
+        echo "=== android/app/build.gradle ==="
+        cat android/app/build.gradle
+
     - name: Sync Capacitor
       run: |
         npx cap sync android
@@ -50,36 +64,23 @@ jobs:
       working-directory: android
       run: |
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon --stacktrace
-
-    - name: List all build outputs
-      if: always()
-      run: |
-        echo "=== All APK files ==="
-        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found anywhere"
-        echo ""
-        echo "=== All AAB files ==="
-        find . -name "*.aab" -type f 2>/dev/null || echo "No AAB files found"
-        echo ""
-        echo "=== Build outputs directory ==="
-        ls -laR android/app/build/outputs/ 2>/dev/null || echo "No outputs directory found"
+        ./gradlew assembleDebug --no-daemon
 
     - name: Upload APK Artifact
-      if: always()
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: kantin-unisla-apk
-        path: |
-          android/app/build/outputs/
-        if-no-files-found: warn
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        if-no-files-found: error
 
-    - name: Upload Logs on Failure
+    - name: Upload full outputs on failure
       if: failure()
       uses: actions/upload-artifact@v4
       with:
-        name: build-logs
+        name: build-debug-logs
         path: |
-          gradle_output.log
           android/build.gradle
           android/app/build.gradle
           android/gradle/wrapper/gradle-wrapper.properties
+        if-no-files-found: warn

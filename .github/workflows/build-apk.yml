@@ -28,8 +28,7 @@ jobs:
 
     - name: Add Camera Permission to AndroidManifest
       run: |
-        # Menambahkan izin akses kamera ke file AndroidManifest.xml secara otomatis
-        sed -i '/<\/manifest>/i \    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" />\n    <uses-feature android:name="android.hardware.camera.autofocus" />' android/app/src/main/AndroidManifest.xml
+        node -e "const fs = require('fs'); let data = fs.readFileSync('android/app/src/main/AndroidManifest.xml', 'utf8'); data = data.replace('</manifest>', '    <uses-permission android:name=\"android.permission.CAMERA\" />\n    <uses-feature android:name=\"android.hardware.camera\" />\n    <uses-feature android:name=\"android.hardware.camera.autofocus\" />\n</manifest>'); fs.writeFileSync('android/app/src/main/AndroidManifest.xml', data);"
 
     - name: Sync Capacitor
       run: |

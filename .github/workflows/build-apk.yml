@@ -69,12 +69,28 @@ jobs:
         chmod +x gradlew
         ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee ../gradle_output.log
 
+    - name: Find APK files
+      if: success()
+      run: |
+        echo "=== Searching for APK files ==="
+        find . -name "*.apk" -type f 2>/dev/null
+        echo ""
+        echo "=== Searching in android/app/build ==="
+        find android/app/build -type f -name "*.apk" 2>/dev/null || echo "No APK found in android/app/build"
+        echo ""
+        echo "=== Full android build outputs ==="
+        ls -la android/app/build/outputs/ 2>/dev/null || echo "No outputs directory"
+        ls -la android/app/build/outputs/apk/ 2>/dev/null || echo "No apk directory"
+        ls -laR android/app/build/outputs/apk/ 2>/dev/null || echo "No apk subdirectories"
+
     - name: Upload APK Artifact
       if: success()
       uses: actions/upload-artifact@v4
       with:
         name: kantin-unisla-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        path: |
+          android/app/build/outputs/apk/**/*.apk
+        if-no-files-found: warn
 
     - name: Upload Logs on Failure
       if: failure()

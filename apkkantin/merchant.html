@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Warung - Kantin UNISLA</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js"></script>
+</head>
+<body>
+    <!-- AUTH LAYOUT -->
+    <div id="auth-screen" class="auth-container">
+        <div class="card auth-card">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="assets/logo.png" alt="Logo UNISLA" style="height: 80px; width: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+            </div>
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="tab-login" onclick="switchAuthMode('login')">Login Warung</div>
+                <div class="auth-tab" id="tab-register" onclick="switchAuthMode('register')">Daftar Warung Baru</div>
+            </div>
+            
+            <div id="auth-error" class="hidden" style="color: var(--danger); margin-bottom: 15px; font-size: 0.9rem; text-align: center;"></div>
+            <div id="auth-success" class="hidden" style="color: var(--success); margin-bottom: 15px; font-size: 0.9rem; text-align: center;"></div>
+
+            <!-- LOGIN FORM -->
+            <form id="form-login" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Email Warung</label>
+                    <input type="email" id="login-email" class="form-control" required placeholder="Contoh: busiti@unisla.ac.id">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="login-pass" class="form-control" required placeholder="Gunakan: password123">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Masuk ke Dasbor</button>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form id="form-register" class="hidden" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Nama Warung</label>
+                    <input type="text" id="reg-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Foto Kantin</label>
+                    <div id="reg-photo-preview" style="
+                        width:100%; height:140px; border:2px dashed var(--border-color);
+                        border-radius:var(--radius-md); display:flex; align-items:center;
+                        justify-content:center; cursor:pointer; overflow:hidden;
+                        background:var(--bg-secondary); transition:border-color 0.2s;
+                        margin-bottom:8px;
+                    " onclick="document.getElementById('reg-photo-input').click()">
+                        <span id="reg-photo-placeholder" style="color:var(--text-muted); font-size:0.9rem; text-align:center; pointer-events:none;">
+                            🏪<br>Klik untuk upload<br>foto kantin
+                        </span>
+                        <img id="reg-photo-img" src="" alt="" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:var(--radius-md);">
+                    </div>
+                    <input type="file" id="reg-photo-input" accept="image/*" style="display:none" onchange="previewRegPhoto(event)">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Format: JPG, PNG, WEBP. Maks. 2MB.</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="reg-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nomor WA / Kontak</label>
+                    <input type="tel" id="reg-phone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="reg-pass" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-accent" style="width: 100%;">Daftar Sekarang</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD LAYOUT -->
+    <div id="dashboard-screen" class="dashboard-layout hidden">
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+        
+        <div class="mobile-bar">
+            <div class="mobile-brand">
+                <img src="assets/logo.png" alt="Logo UNISLA">
+                <h2 style="font-size: 1rem;">Warung Kantin UNISLA</h2>
+            </div>
+            <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <img src="assets/logo.png" alt="Logo UNISLA" style="height: 40px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 0.65rem; color: var(--accent); font-weight: 700;">DASHBOARD WARUNG</span>
+                    <h2 id="merchant-name-display" style="font-size: 1.05rem; line-height:1.2; margin: 0; color: white;">Nama Warung</h2>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="sidebar-link active" onclick="switchDashboardTab('orders')" id="nav-orders">
+                    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Antrean Pesanan
+                </button>
+                <button class="sidebar-link" onclick="switchDashboardTab('menu')" id="nav-menu">
+                    <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                    Kelola Menu (CRUD)
+                </button>
+                <button class="sidebar-link" onclick="switchDashboardTab('reports')" id="nav-reports">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    Laporan Penjualan
+                </button>
+                <button class="sidebar-link" onclick="switchDashboardTab('history')" id="nav-history">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Riwayat Transaksi
+                </button>
+            </nav>
+            
+            <div class="sidebar-user">
+                <button class="btn btn-secondary" style="width: 100%; color: white; background: rgba(255,255,255,0.1); border:none;" onclick="handleLogout()">Logout</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <!-- TAB: ORDERS (KANBAN) -->
+            <div id="tab-orders">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Antrean Pesanan Masuk</h1>
+                        <p>Pantau dan ubah status pesanan secara real-time.</p>
+                    </div>
+                </div>
+
+                <div class="orders-grid">
+                    <!-- KOLOM: PENDING -->
+                    <div class="order-column">
+                        <h3>Pesanan Baru <span class="order-column-count" id="count-pending">0</span></h3>
+                        <div class="order-cards-list" id="list-pending"></div>
+                    </div>
+                    
+                    <!-- KOLOM: DIPROSES -->
+                    <div class="order-column">
+                        <h3>Sedang Dibuat <span class="order-column-count" id="count-processed">0</span></h3>
+                        <div class="order-cards-list" id="list-processed"></div>
+                    </div>
+
+                    <!-- KOLOM: SIAP DIAMBIL -->
+                    <div class="order-column">
+                        <h3>Siap Diambil <span class="order-column-count" id="count-ready">0</span></h3>
+                        <div class="order-cards-list" id="list-ready"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: MENU -->
+            <div id="tab-menu" class="hidden">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Kelola Daftar Menu</h1>
+                        <p>Tambah, edit, hapus, atau atur ketersediaan stok menu Anda.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openMenuModal()">+ Tambah Menu Baru</button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Foto</th>
+                                    <th>Nama Menu</th>
+                                    <th>Kategori</th>
+                                    <th>Harga</th>
+                                    <th>Stok Tersedia</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="menu-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: REPORTS -->
+            <div id="tab-reports" class="hidden">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Laporan Penjualan</h1>
+                        <p>Ringkasan transaksi yang telah selesai (Completed).</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.print()">📥 Download / Cetak PDF</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon accent-icon">💰</div>
+                        <div class="stat-info">
+                            <h4>Total Omset Hari Ini</h4>
+                            <p id="report-revenue">Rp 0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-info">
+                            <h4>Pesanan Selesai</h4>
+                            <p id="report-orders">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal & Waktu</th>
+                                    <th>ID Transaksi</th>
+                                    <th>Metode Pembayaran</th>
+                                    <th>Total Pemasukan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: HISTORY -->
+            <div id="tab-history" class="hidden">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Riwayat Transaksi</h1>
+                        <p>Daftar riwayat semua transaksi penjualan Anda.</p>
+                    </div>
+                </div>
+
+                <!-- FILTER BAR -->
+                <div class="card" style="margin-bottom: 20px; padding: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="history-search" class="form-control" placeholder="Cari ID / Meja / Menu..." oninput="renderHistory()" style="max-width: 250px; padding: 8px 12px; font-size: 0.9rem;">
+                        
+                        <select id="history-filter-date" class="form-control" onchange="renderHistory()" style="max-width: 180px; padding: 8px 12px; font-size: 0.9rem;">
+                            <option value="all">Semua Waktu</option>
+                            <option value="today">Hari Ini</option>
+                            <option value="yesterday">Kemarin</option>
+                            <option value="week">7 Hari Terakhir</option>
+                        </select>
+
+                        <select id="history-filter-payment" class="form-control" onchange="renderHistory()" style="max-width: 150px; padding: 8px 12px; font-size: 0.9rem;">
+                            <option value="all">Semua Metode</option>
+                            <option value="qris">QRIS</option>
+                            <option value="cash">Tunai</option>
+                        </select>
+                    </div>
+                    <div style="font-weight: 600; color: var(--text-muted); font-size: 0.95rem;">
+                        Terfilter: <span id="history-filtered-count" style="color: var(--primary);">0</span> Transaksi | 
+                        Total: <span id="history-filtered-revenue" style="color: var(--success);">Rp 0</span>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal & Waktu</th>
+                                    <th>ID Pesanan</th>
+                                    <th>Meja</th>
+                                    <th>Item Pesanan</th>
+                                    <th>Pembayaran</th>
+                                    <th>Total Pemasukan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL TAMBAH/EDIT MENU -->
+    <div id="menu-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeMenuModal()">&times;</button>
+            <h2 id="modal-menu-title" style="margin-bottom: 20px;">Tambah Menu Baru</h2>
+            
+            <form id="form-menu" onsubmit="handleSaveMenu(event)">
+                <input type="hidden" id="menu-id">
+                <div class="form-group">
+                    <label class="form-label">Foto Menu</label>
+                    <div id="menu-photo-preview" style="
+                        width:100%; height:160px; border:2px dashed var(--border-color);
+                        border-radius:var(--radius-md); display:flex; align-items:center;
+                        justify-content:center; cursor:pointer; overflow:hidden;
+                        background:var(--bg-secondary); transition:border-color 0.2s;
+                        margin-bottom:8px;
+                    " onclick="document.getElementById('menu-photo-input').click()">
+                        <span id="menu-photo-placeholder" style="color:var(--text-muted); font-size:0.9rem; text-align:center; pointer-events:none;">
+                            🍽️<br>Klik untuk upload<br>foto menu
+                        </span>
+                        <img id="menu-photo-img" src="" alt="" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:var(--radius-md);">
+                    </div>
+                    <input type="file" id="menu-photo-input" accept="image/*" style="display:none" onchange="previewMenuPhoto(event)">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Format: JPG, PNG, WEBP. Maks. 2MB.</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nama Menu</label>
+                    <input type="text" id="menu-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kategori</label>
+                    <select id="menu-category" class="form-control" required>
+                        <option value="Makanan">Makanan</option>
+                        <option value="Minuman">Minuman</option>
+                        <option value="Cemilan">Cemilan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Harga (Rp)</label>
+                    <input type="number" id="menu-price" class="form-control" required min="500" step="500">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deskripsi Singkat</label>
+                    <textarea id="menu-desc" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" id="menu-stok" checked style="width:18px; height:18px; accent-color:var(--primary);">
+                    <label for="menu-stok" class="form-label" style="margin:0;">Stok Tersedia</label>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top:10px;">Simpan Menu</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL TRANSAKSI (RECEIPT) -->
+    <div id="receipt-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px; padding: 25px; border-radius: var(--radius-md); font-family: monospace;">
+            <button class="modal-close" onclick="closeReceiptModal()">&times;</button>
+            <div style="text-align: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px; margin-bottom: 15px;">
+                <h3 style="font-family: inherit; margin-bottom: 5px;" id="receipt-merchant-name">Nama Warung</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;" id="receipt-merchant-contact">Kontak: -</p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Kantin UNISLA</p>
+            </div>
+            
+            <div style="font-size: 0.85rem; line-height: 1.4; margin-bottom: 15px; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Waktu:</span>
+                    <span id="receipt-time">14/06/2026, 12.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>ID Transaksi:</span>
+                    <span id="receipt-tx-id" style="font-weight: bold;">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>No. Meja:</span>
+                    <span id="receipt-table" style="font-weight: bold;">-</span>
+                </div>
+            </div>
+            
+            <div id="receipt-items" style="font-size: 0.85rem; margin-bottom: 15px; border-bottom: 1px dashed var(--border-color); padding-bottom: 15px;">
+                <!-- Items list -->
+            </div>
+            
+            <div style="font-size: 0.9rem; font-weight: bold; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>TOTAL:</span>
+                    <span id="receipt-total">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-top: 5px;">
+                    <span>Metode:</span>
+                    <span id="receipt-payment-method">-</span>
+                </div>
+            </div>
+            
+            <div style="text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+                <p>Terima kasih atas kunjungan Anda!</p>
+                <p style="margin-top: 5px;">Struk Digital Kantin UNISLA</p>
+                <button class="btn btn-secondary btn-sm no-print" onclick="window.print()" style="margin-top: 15px; width: 100%; font-family: sans-serif;">🖨️ Cetak Struk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO FOR NOTIFICATIONS -->
+    <audio id="order-alert" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- MERCHANTS JS LOGIC -->
+    <script>
+        let currentMerchant = null;
+        let lastOrderCount = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            
+            // Listen for cross-tab updates
+            window.addEventListener('storage', () => {
+                if (currentMerchant) {
+                    renderDashboard();
+                    checkForNewOrders();
+                }
+            });
+            window.addEventListener('storage_updated', () => {
+                if (currentMerchant) {
+                    renderDashboard();
+                    checkForNewOrders();
+                }
+            });
+        });
+
+        // --- AUTHENTICATION ---
+        function switchAuthMode(mode) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${mode}`).classList.add('active');
+            
+            if (mode === 'login') {
+                document.getElementById('form-login').classList.remove('hidden');
+                document.getElementById('form-register').classList.add('hidden');
+            } else {
+                document.getElementById('form-login').classList.add('hidden');
+                document.getElementById('form-register').classList.remove('hidden');
+            }
+        }
+
+        function checkAuth() {
+            currentMerchant = DB.getActiveMerchant();
+            if (currentMerchant) {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                document.getElementById('merchant-name-display').textContent = currentMerchant.nama;
+                
+                // Track baseline order count for notifications
+                lastOrderCount = DB.getOrdersByMerchant(currentMerchant.id).filter(o => o.status === 'pending').length;
+                
+                renderDashboard();
+            } else {
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('dashboard-screen').classList.add('hidden');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            
+            const res = DB.merchantLogin(email, pass);
+            if (res.success) {
+                checkAuth();
+                showToast('Berhasil masuk ke Dasbor.', 'success');
+            } else {
+                const err = document.getElementById('auth-error');
+                err.textContent = res.message;
+                err.classList.remove('hidden');
+            }
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const phone = document.getElementById('reg-phone').value;
+            const pass = document.getElementById('reg-pass').value;
+            const fotoKantin = window._regPhotoBase64 || null;
+
+            const res = DB.merchantRegister({ nama: name, email, kontak: phone, password: pass, fotoKantin });
+            if (res.success) {
+                window._regPhotoBase64 = null;
+                checkAuth();
+                showToast('Pendaftaran warung berhasil!', 'success');
+            } else {
+                const err = document.getElementById('auth-error');
+                err.textContent = res.message;
+                err.classList.remove('hidden');
+            }
+        }
+
+        // --- PREVIEW FOTO ---
+        function previewRegPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Ukuran file terlalu besar. Maksimal 2MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                window._regPhotoBase64 = e.target.result;
+                const img = document.getElementById('reg-photo-img');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                document.getElementById('reg-photo-placeholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function previewMenuPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Ukuran file terlalu besar. Maksimal 2MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                window._menuPhotoBase64 = e.target.result;
+                const img = document.getElementById('menu-photo-img');
+                img.src = e.target.result;
+                img.style.display = 'block';
+                document.getElementById('menu-photo-placeholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function handleLogout() {
+            DB.merchantLogout();
+            checkAuth();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+        }
+
+        // --- DASHBOARD NAVIGATION ---
+        function switchDashboardTab(tabId) {
+            ['orders', 'menu', 'reports', 'history'].forEach(id => {
+                const tabEl = document.getElementById(`tab-${id}`);
+                const navEl = document.getElementById(`nav-${id}`);
+                if (tabEl) tabEl.classList.add('hidden');
+                if (navEl) navEl.classList.remove('active');
+            });
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeTab) activeTab.classList.remove('hidden');
+            if (activeNav) activeNav.classList.add('active');
+            closeSidebar();
+        }
+
+        function renderDashboard() {
+            renderOrders();
+            renderMenus();
+            renderReports();
+            renderHistory();
+        }
+
+        // --- KANBAN ORDERS ---
+        function renderOrders() {
+            const allOrders = DB.getOrdersByMerchant(currentMerchant.id);
+            
+            const pending = allOrders.filter(o => o.status === 'pending');
+            const processed = allOrders.filter(o => o.status === 'processed');
+            const ready = allOrders.filter(o => o.status === 'ready');
+
+            document.getElementById('count-pending').textContent = pending.length;
+            document.getElementById('count-processed').textContent = processed.length;
+            document.getElementById('count-ready').textContent = ready.length;
+
+            document.getElementById('list-pending').innerHTML = pending.map(o => createOrderCard(o, 'Terima & Buat', 'processed', 'pending')).join('');
+            document.getElementById('list-processed').innerHTML = processed.map(o => createOrderCard(o, 'Makanan Siap Diambil', 'ready', 'processed')).join('');
+            document.getElementById('list-ready').innerHTML = ready.map(o => createOrderCard(o, 'Selesaikan Pesanan', 'completed', 'ready')).join('');
+        }
+
+        function createOrderCard(order, actionText, nextStatus, currentStatus) {
+            const time = new Date(order.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            
+            const itemsHtml = order.items.map(item => `
+                <div class="live-order-item-row">
+                    <span>${item.qty}x ${item.nama}</span>
+                </div>
+                ${item.notes ? `<div class="live-order-notes">Catatan: ${item.notes}</div>` : ''}
+            `).join('');
+
+            return `
+                <div class="live-order-card status-${currentStatus}">
+                    <div class="live-order-header">
+                        <span class="live-order-id">#${order.id.slice(-6).toUpperCase()}</span>
+                        <span class="live-order-table">Meja: ${order.tableNumber}</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">Masuk: ${time}</div>
+                    
+                    <div class="live-order-items">
+                        ${itemsHtml}
+                    </div>
+                    
+                    <div class="live-order-footer">
+                        <span class="live-order-price">${formatRp(order.totalPrice)}</span>
+                        <button class="btn btn-sm btn-primary" onclick="updateOrderStatus('${order.id}', '${nextStatus}')">
+                            ${actionText}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            DB.updateOrderStatus(orderId, newStatus);
+            renderDashboard();
+            showToast(`Status pesanan diperbarui!`, 'success');
+        }
+
+        function checkForNewOrders() {
+            const currentPendingCount = DB.getOrdersByMerchant(currentMerchant.id).filter(o => o.status === 'pending').length;
+            if (currentPendingCount > lastOrderCount) {
+                // New order arrived!
+                showToast('Pesanan baru masuk dari pembeli!', 'warning');
+                document.getElementById('order-alert').play().catch(e => console.log('Audio autoplay blocked'));
+            }
+            lastOrderCount = currentPendingCount;
+        }
+
+        // --- MENU CRUD ---
+        function renderMenus() {
+            const menus = DB.getMenusByMerchant(currentMerchant.id);
+            const tbody = document.getElementById('menu-table-body');
+            
+            if (menus.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Belum ada menu yang ditambahkan.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = menus.map(m => `
+                <tr style="${!m.stok ? 'opacity: 0.5;' : ''}">
+                    <td>
+                        ${ m.fotoMenu
+                            ? `<img src="${m.fotoMenu}" alt="${m.nama}" style="width:52px; height:52px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--border-color);">`
+                            : `<div class="food-svg-container" style="width:48px; height:48px;">${DB.getFoodSvg(m.iconKey || 'snack')}</div>`
+                        }
+                    </td>
+                    <td>
+                        <strong>${m.nama}</strong><br>
+                        <span style="font-size:0.8rem; color:var(--text-muted);">${m.deskripsi}</span>
+                    </td>
+                    <td>${m.kategori}</td>
+                    <td style="font-weight:600;">${formatRp(m.harga)}</td>
+                    <td>
+                        <button class="btn btn-sm ${m.stok ? 'btn-outline-danger' : 'btn-primary'}" onclick="toggleStok('${m.id}')">
+                            ${m.stok ? 'Tandai Habis' : 'Tandai Tersedia'}
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="editMenu('${m.id}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteMenu('${m.id}')">Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleStok(menuId) {
+            const menus = DB.getMenus();
+            const idx = menus.findIndex(m => m.id === menuId);
+            if (idx !== -1) {
+                menus[idx].stok = !menus[idx].stok;
+                DB.saveMenus(menus);
+                showToast(`Stok ${menus[idx].nama} diperbarui.`, 'info');
+            }
+        }
+
+        function deleteMenu(menuId) {
+            if(confirm('Apakah Anda yakin ingin menghapus menu ini?')) {
+                const menus = DB.getMenus().filter(m => m.id !== menuId);
+                DB.saveMenus(menus);
+                showToast('Menu berhasil dihapus.', 'success');
+            }
+        }
+
+        function openMenuModal() {
+            document.getElementById('form-menu').reset();
+            document.getElementById('menu-id').value = '';
+            document.getElementById('modal-menu-title').textContent = 'Tambah Menu Baru';
+            // Reset foto preview
+            window._menuPhotoBase64 = null;
+            document.getElementById('menu-photo-img').src = '';
+            document.getElementById('menu-photo-img').style.display = 'none';
+            document.getElementById('menu-photo-placeholder').style.display = '';
+            document.getElementById('menu-photo-input').value = '';
+            document.getElementById('menu-modal').classList.remove('hidden');
+        }
+
+        function closeMenuModal() {
+            document.getElementById('menu-modal').classList.add('hidden');
+        }
+
+        function editMenu(menuId) {
+            const menu = DB.getMenus().find(m => m.id === menuId);
+            if (menu) {
+                document.getElementById('menu-id').value = menu.id;
+                document.getElementById('menu-name').value = menu.nama;
+                document.getElementById('menu-category').value = menu.kategori;
+                document.getElementById('menu-price').value = menu.harga;
+                document.getElementById('menu-desc').value = menu.deskripsi;
+                document.getElementById('menu-stok').checked = menu.stok;
+
+                // Load foto jika ada
+                if (menu.fotoMenu) {
+                    window._menuPhotoBase64 = menu.fotoMenu;
+                    const img = document.getElementById('menu-photo-img');
+                    img.src = menu.fotoMenu;
+                    img.style.display = 'block';
+                    document.getElementById('menu-photo-placeholder').style.display = 'none';
+                } else {
+                    window._menuPhotoBase64 = null;
+                    document.getElementById('menu-photo-img').src = '';
+                    document.getElementById('menu-photo-img').style.display = 'none';
+                    document.getElementById('menu-photo-placeholder').style.display = '';
+                }
+                document.getElementById('menu-photo-input').value = '';
+
+                document.getElementById('modal-menu-title').textContent = 'Edit Menu';
+                document.getElementById('menu-modal').classList.remove('hidden');
+            }
+        }
+
+        function handleSaveMenu(e) {
+            e.preventDefault();
+            const id = document.getElementById('menu-id').value;
+            const menuData = {
+                nama: document.getElementById('menu-name').value,
+                kategori: document.getElementById('menu-category').value,
+                harga: parseInt(document.getElementById('menu-price').value),
+                deskripsi: document.getElementById('menu-desc').value,
+                stok: document.getElementById('menu-stok').checked,
+                iconKey: 'snack',
+                fotoMenu: window._menuPhotoBase64 || null,
+                merchantId: currentMerchant.id
+            };
+
+            const menus = DB.getMenus();
+            if (id) {
+                // Update
+                const idx = menus.findIndex(m => m.id === id);
+                if (idx !== -1) {
+                    menus[idx] = { ...menus[idx], ...menuData };
+                }
+            } else {
+                // Create
+                menus.push({
+                    id: 'menu-' + Date.now(),
+                    ...menuData
+                });
+            }
+
+            window._menuPhotoBase64 = null;
+            DB.saveMenus(menus);
+            closeMenuModal();
+            showToast('Menu berhasil disimpan!', 'success');
+        }
+
+        // --- REPORTS ---
+        function renderReports() {
+            const txs = DB.getTransactions().filter(tx => tx.merchantId === currentMerchant.id);
+            const tbody = document.getElementById('report-table-body');
+            
+            const totalRevenue = txs.reduce((sum, tx) => sum + tx.amount, 0);
+            document.getElementById('report-revenue').textContent = formatRp(totalRevenue);
+            document.getElementById('report-orders').textContent = txs.length;
+            
+            if (txs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada penjualan.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = txs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).map(tx => {
+                const date = new Date(tx.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                return `
+                <tr>
+                    <td>${date}</td>
+                    <td style="font-family:monospace;">${tx.id}</td>
+                    <td>${tx.paymentMethod.toUpperCase()}</td>
+                    <td style="font-weight:700; color:var(--primary);">${formatRp(tx.amount)}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        // --- HISTORY ---
+        function renderHistory() {
+            if (!currentMerchant) return;
+            const txs = DB.getTransactions().filter(tx => tx.merchantId === currentMerchant.id);
+            const allOrders = DB.getOrders();
+            const tbody = document.getElementById('history-table-body');
+            
+            // Search query
+            const searchQuery = document.getElementById('history-search').value.toLowerCase().trim();
+            const dateFilter = document.getElementById('history-filter-date').value;
+            const paymentFilter = document.getElementById('history-filter-payment').value;
+            
+            // Filter logic
+            const filteredTxs = txs.filter(tx => {
+                // Find order details
+                const order = allOrders.find(o => o.id === tx.orderId);
+                const tableStr = order ? String(order.tableNumber) : '';
+                const itemsStr = order ? order.items.map(item => item.nama).join(', ').toLowerCase() : '';
+                
+                // Match search
+                const matchesSearch = tx.id.toLowerCase().includes(searchQuery) || 
+                                      tx.orderId.toLowerCase().includes(searchQuery) || 
+                                      tableStr.includes(searchQuery) ||
+                                      itemsStr.includes(searchQuery);
+                                      
+                // Match payment
+                const matchesPayment = paymentFilter === 'all' || tx.paymentMethod.toLowerCase() === paymentFilter.toLowerCase();
+                
+                // Match date
+                let matchesDate = true;
+                const txDate = new Date(tx.timestamp);
+                const today = new Date();
+                
+                if (dateFilter === 'today') {
+                    matchesDate = txDate.toDateString() === today.toDateString();
+                } else if (dateFilter === 'yesterday') {
+                    const yesterday = new Date();
+                    yesterday.setDate(today.getDate() - 1);
+                    matchesDate = txDate.toDateString() === yesterday.toDateString();
+                } else if (dateFilter === 'week') {
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(today.getDate() - 7);
+                    matchesDate = txDate >= oneWeekAgo;
+                }
+                
+                return matchesSearch && matchesPayment && matchesDate;
+            });
+            
+            // Calculate total revenue and count for filtered txs
+            const filteredRevenue = filteredTxs.reduce((sum, tx) => sum + tx.amount, 0);
+            document.getElementById('history-filtered-count').textContent = filteredTxs.length;
+            document.getElementById('history-filtered-revenue').textContent = formatRp(filteredRevenue);
+            
+            if (filteredTxs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:15px; color:var(--text-muted);">Tidak ada riwayat transaksi yang cocok.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filteredTxs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).map(tx => {
+                const date = new Date(tx.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                const order = allOrders.find(o => o.id === tx.orderId);
+                
+                let itemsHtml = '-';
+                let tableNumber = '-';
+                if (order) {
+                    tableNumber = order.tableNumber;
+                    itemsHtml = order.items.map(item => `${item.qty}x ${item.nama}`).join('<br>');
+                }
+                
+                return `
+                <tr>
+                    <td>${date}</td>
+                    <td style="font-family:monospace; font-size:0.85rem;">#${tx.orderId.slice(-6).toUpperCase()}</td>
+                    <td>Meja ${tableNumber}</td>
+                    <td>${itemsHtml}</td>
+                    <td><span class="badge badge-completed">${tx.paymentMethod.toUpperCase()}</span></td>
+                    <td style="font-weight:700; color:var(--primary);">${formatRp(tx.amount)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="openReceiptModal('${tx.orderId}')">Detail</button>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function openReceiptModal(orderId) {
+            const allOrders = DB.getOrders();
+            const order = allOrders.find(o => o.id === orderId);
+            const txs = DB.getTransactions();
+            const tx = txs.find(t => t.orderId === orderId);
+            
+            if (!order || !tx) {
+                alert('Detail transaksi tidak ditemukan.');
+                return;
+            }
+            
+            document.getElementById('receipt-merchant-name').textContent = currentMerchant.nama;
+            document.getElementById('receipt-merchant-contact').textContent = 'Kontak: ' + (currentMerchant.kontak || '-');
+            document.getElementById('receipt-time').textContent = new Date(tx.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+            document.getElementById('receipt-tx-id').textContent = tx.id.toUpperCase();
+            document.getElementById('receipt-table').textContent = order.tableNumber;
+            
+            const itemsHtml = order.items.map(item => `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>${item.nama} (${item.qty}x)</span>
+                    <span>${formatRp(item.harga * item.qty)}</span>
+                </div>
+                ${item.notes ? `<div style="font-size:0.75rem; color:var(--danger); font-style:italic; margin-top:-3px; margin-bottom: 5px;">Catatan: ${item.notes}</div>` : ''}
+            `).join('');
+            
+            document.getElementById('receipt-items').innerHTML = itemsHtml;
+            document.getElementById('receipt-total').textContent = formatRp(tx.amount);
+            document.getElementById('receipt-payment-method').textContent = tx.paymentMethod.toUpperCase();
+            
+            document.getElementById('receipt-modal').classList.remove('hidden');
+        }
+        
+        function closeReceiptModal() {
+            document.getElementById('receipt-modal').classList.add('hidden');
+        }
+
+        // --- UTILS ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<p style="margin:0; font-weight:500;">${message}</p>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                toast.style.transition = 'all 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

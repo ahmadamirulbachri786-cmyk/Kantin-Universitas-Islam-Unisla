@@ -1,0 +1,8 @@
+✔ Copying web assets from sistem_kantin to android/app/src/main/assets/public in 7.62ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 755.35μs
+✔ copy android in 13.49ms
+✔ Updating Android plugins in 461.85μs
+✔ update android in 17.62ms
+✔ copy web in 1.15ms
+✔ update web in 1.20ms
+[info] Sync finished in 0.046s

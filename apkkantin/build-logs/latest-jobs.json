@@ -1,0 +1,185 @@
+﻿{
+    "total_count":  1,
+    "jobs":  [
+                 {
+                     "id":  81259787438,
+                     "run_id":  27492340936,
+                     "workflow_name":  "Build Android APK",
+                     "head_branch":  "main",
+                     "run_url":  "https://api.github.com/repos/ahmadamirulbachri786-cmyk/Kantin-Universitas-Islam-Unisla/actions/runs/27492340936",
+                     "run_attempt":  1,
+                     "node_id":  "CR_kwDOS6Msvc8AAAAS63X0rg",
+                     "head_sha":  "6d5a9f9ba8c05011f139c18cd24f80069ddaffb0",
+                     "url":  "https://api.github.com/repos/ahmadamirulbachri786-cmyk/Kantin-Universitas-Islam-Unisla/actions/jobs/81259787438",
+                     "html_url":  "https://github.com/ahmadamirulbachri786-cmyk/Kantin-Universitas-Islam-Unisla/actions/runs/27492340936/job/81259787438",
+                     "status":  "completed",
+                     "conclusion":  "failure",
+                     "created_at":  "2026-06-14T07:47:27Z",
+                     "started_at":  "2026-06-14T07:47:29Z",
+                     "completed_at":  "2026-06-14T07:48:15Z",
+                     "name":  "build",
+                     "steps":  [
+                                   {
+                                       "name":  "Set up job",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  1,
+                                       "started_at":  "2026-06-14T07:47:29Z",
+                                       "completed_at":  "2026-06-14T07:47:30Z"
+                                   },
+                                   {
+                                       "name":  "Checkout repository",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  2,
+                                       "started_at":  "2026-06-14T07:47:30Z",
+                                       "completed_at":  "2026-06-14T07:47:31Z"
+                                   },
+                                   {
+                                       "name":  "Set up JDK 17",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  3,
+                                       "started_at":  "2026-06-14T07:47:31Z",
+                                       "completed_at":  "2026-06-14T07:47:31Z"
+                                   },
+                                   {
+                                       "name":  "Set up Node.js",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  4,
+                                       "started_at":  "2026-06-14T07:47:31Z",
+                                       "completed_at":  "2026-06-14T07:47:35Z"
+                                   },
+                                   {
+                                       "name":  "Create package.json and install Capacitor",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  5,
+                                       "started_at":  "2026-06-14T07:47:35Z",
+                                       "completed_at":  "2026-06-14T07:47:39Z"
+                                   },
+                                   {
+                                       "name":  "Initialize Capacitor",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  6,
+                                       "started_at":  "2026-06-14T07:47:39Z",
+                                       "completed_at":  "2026-06-14T07:47:40Z"
+                                   },
+                                   {
+                                       "name":  "Add Android platform",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  7,
+                                       "started_at":  "2026-06-14T07:47:40Z",
+                                       "completed_at":  "2026-06-14T07:47:40Z"
+                                   },
+                                   {
+                                       "name":  "Add Camera Permission to AndroidManifest",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  8,
+                                       "started_at":  "2026-06-14T07:47:40Z",
+                                       "completed_at":  "2026-06-14T07:47:40Z"
+                                   },
+                                   {
+                                       "name":  "Upgrade Gradle to 8.11.1",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  9,
+                                       "started_at":  "2026-06-14T07:47:40Z",
+                                       "completed_at":  "2026-06-14T07:47:40Z"
+                                   },
+                                   {
+                                       "name":  "Upgrade Android Gradle Plugin to 8.7.3",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  10,
+                                       "started_at":  "2026-06-14T07:47:40Z",
+                                       "completed_at":  "2026-06-14T07:47:40Z"
+                                   },
+                                   {
+                                       "name":  "Set compileSdk and targetSdk to 34",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  11,
+                                       "started_at":  "2026-06-14T07:47:40Z",
+                                       "completed_at":  "2026-06-14T07:47:40Z"
+                                   },
+                                   {
+                                       "name":  "Sync Capacitor",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  12,
+                                       "started_at":  "2026-06-14T07:47:40Z",
+                                       "completed_at":  "2026-06-14T07:47:41Z"
+                                   },
+                                   {
+                                       "name":  "Build Debug APK",
+                                       "status":  "completed",
+                                       "conclusion":  "failure",
+                                       "number":  13,
+                                       "started_at":  "2026-06-14T07:47:41Z",
+                                       "completed_at":  "2026-06-14T07:48:13Z"
+                                   },
+                                   {
+                                       "name":  "Upload APK Artifact",
+                                       "status":  "completed",
+                                       "conclusion":  "skipped",
+                                       "number":  14,
+                                       "started_at":  "2026-06-14T07:48:13Z",
+                                       "completed_at":  "2026-06-14T07:48:13Z"
+                                   },
+                                   {
+                                       "name":  "Upload Logs on Failure",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  15,
+                                       "started_at":  "2026-06-14T07:48:13Z",
+                                       "completed_at":  "2026-06-14T07:48:14Z"
+                                   },
+                                   {
+                                       "name":  "Post Set up Node.js",
+                                       "status":  "completed",
+                                       "conclusion":  "skipped",
+                                       "number":  28,
+                                       "started_at":  "2026-06-14T07:48:14Z",
+                                       "completed_at":  "2026-06-14T07:48:14Z"
+                                   },
+                                   {
+                                       "name":  "Post Set up JDK 17",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  29,
+                                       "started_at":  "2026-06-14T07:48:14Z",
+                                       "completed_at":  "2026-06-14T07:48:14Z"
+                                   },
+                                   {
+                                       "name":  "Post Checkout repository",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  30,
+                                       "started_at":  "2026-06-14T07:48:14Z",
+                                       "completed_at":  "2026-06-14T07:48:14Z"
+                                   },
+                                   {
+                                       "name":  "Complete job",
+                                       "status":  "completed",
+                                       "conclusion":  "success",
+                                       "number":  31,
+                                       "started_at":  "2026-06-14T07:48:14Z",
+                                       "completed_at":  "2026-06-14T07:48:14Z"
+                                   }
+                               ],
+                     "check_run_url":  "https://api.github.com/repos/ahmadamirulbachri786-cmyk/Kantin-Universitas-Islam-Unisla/check-runs/81259787438",
+                     "labels":  [
+                                    "ubuntu-latest"
+                                ],
+                     "runner_id":  1000000030,
+                     "runner_name":  "GitHub Actions 1000000030",
+                     "runner_group_id":  0,
+                     "runner_group_name":  "GitHub Actions"
+                 }
+             ]
+}

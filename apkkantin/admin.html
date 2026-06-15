@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Kantin UNISLA</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0d9488">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <!-- AUTH LAYOUT FOR ADMIN -->
+    <div id="auth-screen" class="auth-container">
+        <div class="card auth-card">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img src="assets/logo.png" alt="Logo UNISLA" style="height: 80px; width: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">
+            </div>
+            <h2 style="text-align: center; margin-bottom: 20px;">🛡️ Login Pengelola Kantin</h2>
+            <div id="login-error" class="hidden" style="color: var(--danger); margin-bottom: 15px; font-size: 0.9rem; text-align: center;"></div>
+            
+            <form id="admin-login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Username Admin</label>
+                    <input type="text" id="admin-user" class="form-control" required placeholder="Gunakan: admin">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="admin-pass" class="form-control" required placeholder="Gunakan: admin123">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Masuk Panel Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD LAYOUT FOR ADMIN -->
+    <div id="dashboard-screen" class="dashboard-layout hidden">
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+        
+        <div class="mobile-bar">
+            <div class="mobile-brand">
+                <img src="assets/logo.png" alt="Logo UNISLA">
+                <h2>Admin Kantin UNISLA</h2>
+            </div>
+            <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <img src="assets/logo.png" alt="Logo UNISLA" style="height: 40px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+                <h2 style="font-size: 1.2rem; line-height: 1.2; margin: 0;">Admin Panel</h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="sidebar-link active" onclick="switchTab('merchants')" id="nav-merchants">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    Kelola Penjual
+                </button>
+                <button class="sidebar-link" onclick="switchTab('transactions')" id="nav-transactions">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    Semua Transaksi
+                </button>
+                <button class="sidebar-link" onclick="switchTab('qrcodes')" id="nav-qrcodes">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    Cetak QR Meja
+                </button>
+                <button class="sidebar-link" onclick="switchTab('deleteaccounts')" id="nav-deleteaccounts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+                    Hapus Akun
+                </button>
+            </nav>
+            
+            <div class="sidebar-user">
+                <button class="btn btn-secondary" style="width: 100%;" onclick="handleLogout()">Keluar</button>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <!-- TAB: MERCHANTS -->
+            <div id="tab-merchants">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Kelola Penjual / Warung</h1>
+                        <p>Aktivasi dan nonaktivasi warung yang beroperasi di kantin.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏪</div>
+                        <div class="stat-info">
+                            <h4>Total Warung</h4>
+                            <p id="stat-total-merchants">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon accent-icon">✅</div>
+                        <div class="stat-info">
+                            <h4>Warung Aktif</h4>
+                            <p id="stat-active-merchants">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama Warung</th>
+                                    <th>Email (Login)</th>
+                                    <th>Kontak</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="merchant-table-body">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: TRANSACTIONS -->
+            <div id="tab-transactions" class="hidden">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Monitoring Transaksi Global</h1>
+                        <p>Melihat riwayat transaksi dari seluruh warung di kantin UNISLA.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.print()">📥 Download / Cetak PDF</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h4>Total Omset Global</h4>
+                            <p id="stat-global-revenue">Rp 0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>ID Transaksi</th>
+                                    <th>Warung</th>
+                                    <th>Pembayaran</th>
+                                    <th>Total Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody id="global-tx-body">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CETAK QR CODES -->
+            <div id="tab-qrcodes" class="hidden">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Cetak QR Code Meja Kantin</h1>
+                        <p>Generate QR Code untuk dipasang pada meja-meja di kantin.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.print()">🖨️ Print Halaman QR</button>
+                </div>
+                
+                <div class="card no-print" style="margin-bottom: 20px;" id="qr-generator-controls">
+                    <div style="display:flex; gap:15px; align-items:flex-end; flex-wrap: wrap;">
+                        <div class="form-group" style="margin:0; min-width: 100px; flex: 1;">
+                            <label class="form-label">Jumlah Meja</label>
+                            <input type="number" id="qr-count" class="form-control" value="12" min="1" max="200">
+                        </div>
+                        <div class="form-group" style="margin:0; min-width: 280px; flex: 3;">
+                            <label class="form-label">URL / IP & Port Server (Untuk Akses Wi-Fi)</label>
+                            <input type="text" id="qr-base-url" class="form-control" placeholder="Contoh: http://192.168.18.134:8000">
+                            <span style="font-size:0.75rem; color:var(--text-muted);">Kosongkan untuk otomatis menggunakan domain/URL saat ini.</span>
+                        </div>
+                        <button class="btn btn-accent" onclick="generateQRCodes()" style="height: 46px;">Generate QR Codes</button>
+                    </div>
+                </div>
+
+                <div id="qr-codes-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; background: white; padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- TAB: HAPUS AKUN -->
+            <div id="tab-deleteaccounts" class="hidden">
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Hapus Akun Penjual</h1>
+                        <p>Hapus akun warung yang sudah tidak aktif atau tidak digunakan lagi.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--danger);">🗑️</div>
+                        <div class="stat-info">
+                            <h4>Akun Nonaktif</h4>
+                            <p id="stat-inactive-count">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-info">
+                            <h4>Total Semua Akun</h4>
+                            <p id="stat-all-accounts">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 18px; background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.25); padding: 14px 18px; border-radius: var(--radius-md);">
+                    <p style="margin:0; font-size:0.9rem; color: var(--danger); font-weight: 500;">⚠️ Perhatian: Menghapus akun akan menghapus seluruh data warung secara permanen termasuk menu dan riwayat pesanan. Tindakan ini tidak dapat dibatalkan.</p>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama Warung</th>
+                                    <th>Email (Login)</th>
+                                    <th>Kontak</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="delete-accounts-body">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL KONFIRMASI HAPUS AKUN -->
+    <div id="confirm-delete-modal" class="modal-overlay hidden" style="z-index: 1000;">
+        <div class="modal-content" style="max-width: 440px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🗑️</div>
+            <h2 style="margin-bottom: 10px; color: var(--danger);">Hapus Akun?</h2>
+            <p id="confirm-delete-text" style="color: var(--text-muted); margin-bottom: 24px; line-height: 1.6;"></p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Batal</button>
+                <button class="btn" id="confirm-delete-btn"
+                    style="background: var(--danger); color: white; border: none;"
+                    onclick="confirmDeleteAccount()">Ya, Hapus Permanen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        // Check Auth on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            
+            // Listen for cross-tab updates
+            window.addEventListener('storage', () => {
+                if (DB.isAdminLoggedIn()) {
+                    renderMerchants();
+                    renderTransactions();
+                }
+            });
+            window.addEventListener('storage_updated', () => {
+                if (DB.isAdminLoggedIn()) {
+                    renderMerchants();
+                    renderTransactions();
+                }
+            });
+        });
+
+        function checkAuth() {
+            if (DB.isAdminLoggedIn()) {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                renderMerchants();
+                renderTransactions();
+            } else {
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('dashboard-screen').classList.add('hidden');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('admin-user').value;
+            const p = document.getElementById('admin-pass').value;
+            
+            if (DB.adminLogin(u, p)) {
+                checkAuth();
+                showToast('Login berhasil sebagai Admin.', 'success');
+            } else {
+                document.getElementById('login-error').textContent = "Username atau password salah. (Gunakan admin / admin123)";
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            DB.adminLogout();
+            checkAuth();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+        }
+
+        function switchTab(tabId) {
+            ['merchants', 'transactions', 'qrcodes', 'deleteaccounts'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).classList.remove('active');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).classList.add('active');
+            if (tabId === 'deleteaccounts') renderDeleteAccounts();
+            closeSidebar();
+        }
+
+        function renderMerchants() {
+            const merchants = DB.getMerchants();
+            const tbody = document.getElementById('merchant-table-body');
+            
+            document.getElementById('stat-total-merchants').textContent = merchants.length;
+            document.getElementById('stat-active-merchants').textContent = merchants.filter(m => m.aktif).length;
+            
+            if (merchants.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada penjual terdaftar.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = merchants.map(m => `
+                <tr>
+                    <td><strong>${m.nama}</strong></td>
+                    <td>${m.email}</td>
+                    <td>${m.kontak}</td>
+                    <td>
+                        <span class="badge ${m.aktif ? 'badge-active' : 'badge-inactive'}">
+                            ${m.aktif ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm ${m.aktif ? 'btn-outline-danger' : 'btn-primary'}" 
+                                onclick="toggleMerchantStatus('${m.id}')">
+                            ${m.aktif ? 'Nonaktifkan' : 'Aktifkan'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleMerchantStatus(merchantId) {
+            const merchants = DB.getMerchants();
+            const idx = merchants.findIndex(m => m.id === merchantId);
+            if (idx !== -1) {
+                merchants[idx].aktif = !merchants[idx].aktif;
+                DB.saveMerchants(merchants);
+                renderMerchants();
+                showToast(`Warung ${merchants[idx].nama} berhasil di${merchants[idx].aktif ? 'aktifkan' : 'nonaktifkan'}.`, 'success');
+            }
+        }
+
+        // --- HAPUS AKUN ---
+        let pendingDeleteId = null;
+
+        function renderDeleteAccounts() {
+            const merchants = DB.getMerchants();
+            const tbody = document.getElementById('delete-accounts-body');
+            const inactive = merchants.filter(m => !m.aktif);
+
+            document.getElementById('stat-inactive-count').textContent = inactive.length;
+            document.getElementById('stat-all-accounts').textContent = merchants.length;
+
+            if (merchants.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada akun penjual terdaftar.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = merchants.map(m => `
+                <tr style="${!m.aktif ? 'opacity:0.75;' : ''}">
+                    <td><strong>${m.nama}</strong></td>
+                    <td>${m.email}</td>
+                    <td>${m.kontak}</td>
+                    <td>
+                        <span class="badge ${m.aktif ? 'badge-active' : 'badge-inactive'}">
+                            ${m.aktif ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm"
+                            style="background: var(--danger); color: white; border: none;"
+                            onclick="openDeleteModal('${m.id}', '${m.nama}')">
+                            🗑️ Hapus Akun
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openDeleteModal(merchantId, merchantName) {
+            pendingDeleteId = merchantId;
+            document.getElementById('confirm-delete-text').textContent =
+                `Anda yakin ingin menghapus akun "${merchantName}" secara permanen? Semua data terkait akan ikut terhapus.`;
+            document.getElementById('confirm-delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteId = null;
+            document.getElementById('confirm-delete-modal').classList.add('hidden');
+        }
+
+        function confirmDeleteAccount() {
+            if (!pendingDeleteId) return;
+            let merchants = DB.getMerchants();
+            const target = merchants.find(m => m.id === pendingDeleteId);
+            merchants = merchants.filter(m => m.id !== pendingDeleteId);
+            DB.saveMerchants(merchants);
+            closeDeleteModal();
+            renderDeleteAccounts();
+            renderMerchants();
+            showToast(`Akun "${target?.nama || ''}" berhasil dihapus.`, 'success');
+        }
+
+        function renderTransactions() {
+            const txs = DB.getTransactions().sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const tbody = document.getElementById('global-tx-body');
+            
+            let totalRev = txs.reduce((sum, tx) => sum + tx.amount, 0);
+            document.getElementById('stat-global-revenue').textContent = formatRp(totalRev);
+            
+            if (txs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada riwayat transaksi.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = txs.map(tx => {
+                const date = new Date(tx.timestamp).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+                const merchant = DB.getMerchantById(tx.merchantId)?.nama || 'Unknown Merchant';
+                
+                return `
+                <tr>
+                    <td>${date}</td>
+                    <td style="font-family:monospace;">${tx.id}</td>
+                    <td><strong>${merchant}</strong></td>
+                    <td><span class="badge ${tx.paymentMethod === 'qris' ? 'badge-pending' : 'badge-ready'}">${tx.paymentMethod.toUpperCase()}</span></td>
+                    <td style="font-weight:700; color:var(--primary);">${formatRp(tx.amount)}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<p style="margin:0; font-weight:500;">${message}</p>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                toast.style.transition = 'all 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- QR CODE GENERATION ---
+        function generateQRCodes() {
+            const count = parseInt(document.getElementById('qr-count').value);
+            const container = document.getElementById('qr-codes-container');
+            container.innerHTML = '';
+            
+            // Get base URL for QR Code payload
+            let baseUrl = window.location.href.replace('admin.html', 'customer.html');
+            const customBase = document.getElementById('qr-base-url').value.trim();
+            
+            if (customBase) {
+                // If user specifies a custom local server IP (e.g., http://192.168.18.134:8000)
+                let base = customBase;
+                if (!base.startsWith('http://') && !base.startsWith('https://')) {
+                    base = 'http://' + base;
+                }
+                if (!base.endsWith('/')) {
+                    base += '/';
+                }
+                
+                // Construct target URL structure
+                if (base.includes('customer.html')) {
+                    baseUrl = base;
+                } else {
+                    // check if they are hosting inside a subfolder
+                    // e.g. customBase = http://192.168.18.134:8000/sistem_kantin/
+                    baseUrl = base + 'customer.html';
+                }
+            }
+
+            for (let i = 1; i <= count; i++) {
+                const qrBox = document.createElement('div');
+                qrBox.style.border = '2px dashed var(--border-color)';
+                qrBox.style.padding = '20px';
+                qrBox.style.textAlign = 'center';
+                qrBox.style.pageBreakInside = 'avoid';
+                
+                const title = document.createElement('h3');
+                title.textContent = `Meja ${i}`;
+                title.style.marginBottom = '15px';
+                
+                const qrCanvas = document.createElement('div');
+                qrCanvas.id = `qr-code-${i}`;
+                qrCanvas.style.display = 'flex';
+                qrCanvas.style.justifyContent = 'center';
+
+                const instruction = document.createElement('p');
+                instruction.textContent = "Scan untuk Pesan Makanan";
+                instruction.style.fontSize = "0.8rem";
+                instruction.style.marginTop = "10px";
+                instruction.style.color = "var(--text-muted)";
+
+                // Add demo link below QR for direct access without scanning
+                const targetUrl = `${baseUrl}?tableNumber=${i}`;
+                const demoLink = document.createElement('a');
+                demoLink.href = targetUrl;
+                demoLink.target = '_blank';
+                demoLink.className = 'no-print';
+                demoLink.innerHTML = '🔗 Buka Demo Meja';
+                demoLink.style.display = 'inline-block';
+                demoLink.style.marginTop = '12px';
+                demoLink.style.padding = '6px 12px';
+                demoLink.style.background = 'var(--primary-bg)';
+                demoLink.style.color = 'var(--primary)';
+                demoLink.style.border = '1px dashed var(--primary)';
+                demoLink.style.borderRadius = 'var(--radius-sm)';
+                demoLink.style.fontSize = '0.75rem';
+                demoLink.style.fontWeight = '600';
+                demoLink.style.textDecoration = 'none';
+                demoLink.style.transition = 'var(--transition-smooth)';
+                demoLink.onmouseover = () => { demoLink.style.background = 'var(--primary)'; demoLink.style.color = 'white'; };
+                demoLink.onmouseout = () => { demoLink.style.background = 'var(--primary-bg)'; demoLink.style.color = 'var(--primary)'; };
+
+                qrBox.appendChild(title);
+                qrBox.appendChild(qrCanvas);
+                qrBox.appendChild(instruction);
+                qrBox.appendChild(demoLink);
+                container.appendChild(qrBox);
+
+                // Generate QR (Payload: URL with table number)
+                new QRCode(qrCanvas, {
+                    text: targetUrl,
+                    width: 150,
+                    height: 150,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            }
+        }
+
+        // Auto-generate some on load if admin
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if(DB.isAdminLoggedIn()){
+                    generateQRCodes();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
